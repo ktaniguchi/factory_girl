@@ -419,3 +419,38 @@ describe "making sure the factory is properly compiled the first time we want to
     user.role.should == 'admin'
   end
 end
+
+describe "traits with other than attributes or callbacks defined" do
+  before do
+    define_model("User", name: :string)
+
+    FactoryGirl.define do
+      factory :user do
+        trait :with_to_create do
+          to_create {|instance| instance.name = "to_create" }
+        end
+
+        factory :sub_user do
+          to_create {|instance| instance.name = "sub" }
+        end
+
+        factory :sub_user_with_trait do
+          with_to_create
+          to_create {|instance| instance.name = "sub with trait" }
+        end
+      end
+    end
+  end
+
+  it "can apply to_create from traits" do
+    FactoryGirl.create(:user, :with_to_create).name.should == "to_create"
+  end
+
+  it "gives additional traits higher priority" do
+    FactoryGirl.create(:sub_user, :with_to_create).name.should == "to_create"
+  end
+
+  it "gives base traits lower priority" do
+    FactoryGirl.create(:sub_user_with_trait).name.should == "sub with trait"
+  end
+end

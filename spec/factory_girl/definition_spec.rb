@@ -78,13 +78,18 @@ describe FactoryGirl::Definition, "#processing_order" do
       subject.processing_order.should == [subject]
     end
 
-    it "finds the correct traits after inheriting" do
-      subject.inherit_traits([:female])
+    it "finds the correct traits after appending" do
+      subject.append_traits([:female])
       subject.processing_order.should == [subject, female_trait]
     end
 
+    it "finds the correct traits after inheriting" do
+      subject.inherit_traits([:female])
+      subject.processing_order.should == [female_trait, subject]
+    end
+
     it "looks for the trait on FactoryGirl" do
-      subject.inherit_traits([:female, :admin])
+      subject.append_traits([:female, :admin])
       subject.processing_order.should == [subject, female_trait, admin_trait]
     end
   end
@@ -96,9 +101,14 @@ describe FactoryGirl::Definition, "#processing_order" do
       subject.processing_order.should == [female_trait, subject]
     end
 
+    it "finds the correct traits after appending" do
+      subject.append_traits([:admin])
+      subject.processing_order.should == [female_trait, subject, admin_trait]
+    end
+
     it "finds the correct traits after inheriting" do
       subject.inherit_traits([:admin])
-      subject.processing_order.should == [female_trait, subject, admin_trait]
+      subject.processing_order.should == [female_trait, admin_trait, subject]
     end
   end
 end

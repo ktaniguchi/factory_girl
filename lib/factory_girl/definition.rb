@@ -24,7 +24,9 @@ module FactoryGirl
     end
 
     def processing_order
-      base_traits + [self] + additional_traits
+      DefinitionList.new(
+        base_traits + [self] + additional_traits
+      )
     end
 
     def overridable
@@ -33,6 +35,10 @@ module FactoryGirl
     end
 
     def inherit_traits(new_traits)
+      @base_traits += new_traits
+    end
+
+    def append_traits(new_traits)
       @additional_traits += new_traits
     end
 
@@ -44,7 +50,19 @@ module FactoryGirl
       if block_given?
         @to_create = block
       else
-        @to_create
+        declaration_overriding_to_create =
+          processing_order.select do |definition|
+            definition.custom_to_create?
+          end.last
+
+        if declaration_overriding_to_create &&
+          self != declaration_overriding_to_create &&
+          processing_order.index(declaration_overriding_to_create) > processing_order.index(self)
+
+          declaration_overriding_to_create.to_create
+        else
+          @to_create
+        end
       end
     end
 

@@ -17,7 +17,7 @@ module FactoryGirl
     end
 
     delegate :add_callback, :declare_attribute, :to_create, :define_trait,
-             :defined_traits, :inherit_traits, :processing_order, to: :@definition
+             :defined_traits, :inherit_traits, :append_traits, :processing_order, to: :@definition
 
     def build_class
       @build_class ||= if class_name.is_a? Class
@@ -90,7 +90,7 @@ module FactoryGirl
 
     def with_traits(traits)
       self.clone.tap do |factory_with_traits|
-        factory_with_traits.inherit_traits traits
+        factory_with_traits.append_traits traits
       end
     end
 
@@ -107,14 +107,12 @@ module FactoryGirl
     def attributes
       compile
       AttributeList.new(@name).tap do |list|
-        processing_order.each do |factory|
-          list.apply_attributes factory.attributes
-        end
+        list.apply_attributes processing_order.attributes
       end
     end
 
     def callbacks
-      parent.callbacks + processing_order.map {|factory| factory.callbacks }.flatten
+      parent.callbacks + processing_order.callbacks
     end
 
     def constructor
