@@ -12,8 +12,20 @@ module FactoryGirl
       end
 
       class DSL
+        def initialize
+          @to_create = nil
+        end
+
+        def to_create(&block)
+          if block_given?
+            @to_create = block
+          else
+            @to_create
+          end
+        end
+
         def factory(name, options = {}, &block)
-          factory = Factory.new(name, options)
+          factory = Factory.new(name, options.merge(dsl: self))
           proxy = FactoryGirl::DefinitionProxy.new(factory.definition)
           proxy.instance_eval(&block) if block_given?
 

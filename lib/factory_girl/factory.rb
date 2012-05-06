@@ -12,6 +12,7 @@ module FactoryGirl
       @parent           = options[:parent]
       @aliases          = options[:aliases] || []
       @class_name       = options[:class]
+      @defining_dsl     = options.fetch(:dsl) { Syntax::Default::DSL.new }
       @definition       = Definition.new(@name, options[:traits] || [])
       @compiled         = false
     end
@@ -36,10 +37,18 @@ module FactoryGirl
       evaluator = evaluator_class.new(build_class, strategy, overrides.symbolize_keys)
       attribute_assigner = AttributeAssigner.new(evaluator, build_class, &constructor)
 
-      evaluation = Evaluation.new(attribute_assigner, to_create)
+      evaluation = Evaluation.new(attribute_assigner, evaluation_create)
       evaluation.add_observer(CallbacksObserver.new(callbacks, evaluator))
 
       strategy.result(evaluation).tap(&block)
+    end
+
+    def evaluation_create
+      if definition.custom_to_create?
+        to_create
+      else
+        @defining_dsl.to_create || to_create
+      end
     end
 
     def human_names
@@ -129,7 +138,7 @@ module FactoryGirl
     private
 
     def assert_valid_options(options)
-      options.assert_valid_keys(:class, :parent, :aliases, :traits)
+      options.assert_valid_keys(:class, :parent, :aliases, :traits, :dsl)
     end
 
     def parent
