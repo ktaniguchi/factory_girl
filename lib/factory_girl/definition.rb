@@ -50,19 +50,7 @@ module FactoryGirl
       if block_given?
         @to_create = block
       else
-        declaration_overriding_to_create =
-          processing_order.select do |definition|
-            definition.custom_to_create?
-          end.last
-
-        if declaration_overriding_to_create &&
-          self != declaration_overriding_to_create &&
-          processing_order.index(declaration_overriding_to_create) > processing_order.index(self)
-
-          declaration_overriding_to_create.to_create
-        else
-          @to_create
-        end
+        processing_order.custom_to_create_after(self) || @to_create
       end
     end
 
