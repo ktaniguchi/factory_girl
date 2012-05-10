@@ -432,11 +432,21 @@ describe "traits with other than attributes or callbacks defined" do
 
         factory :sub_user do
           to_create {|instance| instance.name = "sub" }
+
+          factory :child_user
         end
 
         factory :sub_user_with_trait do
           with_to_create
-          to_create {|instance| instance.name = "sub with trait" }
+
+          factory :child_user_with_trait
+        end
+
+        factory :sub_user_with_trait_and_override do
+          with_to_create
+          to_create {|instance| instance.name = "sub with trait and override" }
+
+          factory :child_user_with_trait_and_override
         end
       end
     end
@@ -446,11 +456,23 @@ describe "traits with other than attributes or callbacks defined" do
     FactoryGirl.create(:user, :with_to_create).name.should == "to_create"
   end
 
-  it "gives additional traits higher priority" do
-    FactoryGirl.create(:sub_user, :with_to_create).name.should == "to_create"
+  it "can apply to_create from the definition" do
+    FactoryGirl.create(:sub_user).name.should == "sub"
+    FactoryGirl.create(:child_user).name.should == "sub"
   end
 
-  it "gives base traits lower priority" do
-    FactoryGirl.create(:sub_user_with_trait).name.should == "sub with trait"
+  it "gives additional traits higher priority than to_create from the definition" do
+    FactoryGirl.create(:sub_user, :with_to_create).name.should == "to_create"
+    FactoryGirl.create(:child_user, :with_to_create).name.should == "to_create"
+  end
+
+  it "gives base traits normal priority" do
+    FactoryGirl.create(:sub_user_with_trait).name.should == "to_create"
+    FactoryGirl.create(:child_user_with_trait).name.should == "to_create"
+  end
+
+  it "gives base traits lower priority than overrides" do
+    FactoryGirl.create(:sub_user_with_trait_and_override).name.should == "sub with trait and override"
+    FactoryGirl.create(:child_user_with_trait_and_override).name.should == "sub with trait and override"
   end
 end
