@@ -17,7 +17,7 @@ module FactoryGirl
     end
 
     delegate :add_callback, :declare_attribute, :to_create, :define_trait,
-             :defined_traits, :inherit_traits, :append_traits, :processing_order, to: :@definition
+             :defined_traits, :inherit_traits, :append_traits, :definition_list, to: :@definition
 
     def build_class
       @build_class ||= if class_name.is_a? Class
@@ -36,7 +36,7 @@ module FactoryGirl
       evaluator = evaluator_class.new(build_class, strategy, overrides.symbolize_keys)
       attribute_assigner = AttributeAssigner.new(evaluator, build_class, &constructor)
 
-      evaluation = Evaluation.new(attribute_assigner, to_create)
+      evaluation = Evaluation.new(attribute_assigner, compiled_to_create)
       evaluation.add_observer(CallbacksObserver.new(callbacks, evaluator))
 
       strategy.result(evaluation).tap(&block)
@@ -96,6 +96,10 @@ module FactoryGirl
 
     protected
 
+    def compiled_to_create
+      @definition.compiled_to_create || parent.compiled_to_create
+    end
+
     def class_name
       @class_name || parent.class_name || name
     end
@@ -107,12 +111,12 @@ module FactoryGirl
     def attributes
       compile
       AttributeList.new(@name).tap do |list|
-        list.apply_attributes processing_order.attributes
+        list.apply_attributes definition_list.attributes
       end
     end
 
     def callbacks
-      parent.callbacks + processing_order.callbacks
+      parent.callbacks + definition_list.callbacks
     end
 
     def constructor

@@ -475,4 +475,15 @@ describe "traits with other than attributes or callbacks defined" do
     FactoryGirl.create(:sub_user_with_trait_and_override).name.should == "sub with trait and override"
     FactoryGirl.create(:child_user_with_trait_and_override).name.should == "sub with trait and override"
   end
+
+  it "gives additional traits higher priority than base traits and factory definition" do
+    FactoryGirl.define do
+      trait :overridden do
+        to_create {|instance| instance.name = "completely overridden" }
+      end
+    end
+
+    FactoryGirl.create(:sub_user_with_trait_and_override, :overridden).name.should == "completely overridden"
+    FactoryGirl.create(:child_user_with_trait_and_override, :overridden).name.should == "completely overridden"
+  end
 end

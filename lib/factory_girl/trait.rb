@@ -1,7 +1,7 @@
 module FactoryGirl
   # @api private
   class Trait
-    attr_reader :name
+    attr_reader :name, :definition
 
     def initialize(name, &block)
       @name = name
@@ -13,7 +13,7 @@ module FactoryGirl
     end
 
     delegate :add_callback, :declare_attribute, :to_create, :define_trait,
-             :callbacks, :attributes, :custom_to_create?, to: :@definition
+             :callbacks, :attributes, to: :@definition
 
     def names
       [@name]

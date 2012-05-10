@@ -7,7 +7,7 @@ module FactoryGirl
       @declarations      = DeclarationList.new(name)
       @callbacks         = []
       @defined_traits    = []
-      @to_create         = default_to_create
+      @to_create         = nil
       @base_traits       = base_traits
       @additional_traits = []
       @constructor       = default_constructor
@@ -23,9 +23,9 @@ module FactoryGirl
       attributes
     end
 
-    def processing_order
+    def definition_list
       DefinitionList.new(
-        base_traits + [self] + additional_traits
+        base_traits.map(&:definition) + [self] + additional_traits.map(&:definition)
       )
     end
 
@@ -46,11 +46,15 @@ module FactoryGirl
       @callbacks << callback
     end
 
+    def compiled_to_create
+      definition_list.to_create
+    end
+
     def to_create(&block)
       if block_given?
         @to_create = block
       else
-        processing_order.custom_to_create_after(self) || @to_create
+        @to_create
       end
     end
 
@@ -66,18 +70,10 @@ module FactoryGirl
       @constructor != default_constructor
     end
 
-    def custom_to_create?
-      @to_create != default_to_create
-    end
-
     private
 
     def default_constructor
       @default_constructor ||= -> { new }
-    end
-
-    def default_to_create
-      @default_to_create ||= ->(instance) { instance.save! }
     end
 
     def base_traits
