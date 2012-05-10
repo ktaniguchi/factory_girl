@@ -11,17 +11,17 @@ module FactoryGirl
     end
 
     def callbacks
-      @definitions.map(&:callbacks).flatten
+      map(&:callbacks).flatten
     end
 
     def attributes
-      @definitions.map {|definition| definition.attributes.to_a }.flatten
+      map {|definition| definition.attributes.to_a }.flatten
     end
 
     def to_create
       map(&:to_create).compact.last
     end
 
-    delegate :[], :==, :index, to: :@definitions
+    delegate :[], :==, to: :@definitions
   end
 end
